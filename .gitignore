@@ -4,3 +4,5 @@ target/
 .idea/
 .vscode/
 *.log
+# Environment / secrets
+backend/src/main/resources/application.properties
