@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.moneyfesting.backend.model.User;
+import com.moneyfesting.backend.dto.AuthResponse;
 import com.moneyfesting.backend.service.AuthService;
 
 @RestController
@@ -18,21 +18,19 @@ public class AuthController {
         this.authService = authService;
     }
 
-    // SIGNUP
     @PostMapping("/signup")
-    public User signup(
-            @RequestParam String name,
-            @RequestParam String email,
-            @RequestParam String password) {
+    public AuthResponse signup(
+            @RequestParam("name") String name,
+            @RequestParam("email") String email,
+            @RequestParam("password") String password) {
 
         return authService.signup(name, email, password);
     }
 
-    // LOGIN
     @PostMapping("/login")
-    public User login(
-            @RequestParam String email,
-            @RequestParam String password) {
+    public AuthResponse login(
+            @RequestParam("email") String email,
+            @RequestParam("password") String password) {
 
         return authService.login(email, password);
     }

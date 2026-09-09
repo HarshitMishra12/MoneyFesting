@@ -3,6 +3,7 @@ package com.moneyfesting.backend.service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.moneyfesting.backend.dto.AuthResponse;
 import com.moneyfesting.backend.model.User;
 import com.moneyfesting.backend.repository.UserRepository;
 
@@ -17,37 +18,41 @@ public class AuthService {
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
-    public User signup(String name, String email, String password) {
+    public AuthResponse signup(String name, String email, String password) {
 
-        // Check whether email is already registered
-        if (userRepository.existsByEmail(email)) {
+        if (userRepository.findByEmail(email).isPresent()) {
             throw new RuntimeException("Email already registered");
         }
 
-        // Create new user
         User user = new User();
 
         user.setName(name);
         user.setEmail(email);
-
-        // Never store the plain-text password
         user.setPassword(passwordEncoder.encode(password));
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        return new AuthResponse(
+                savedUser.getId(),
+                savedUser.getName(),
+                savedUser.getEmail()
+        );
     }
 
-    public User login(String email, String password) {
+    public AuthResponse login(String email, String password) {
 
-        // Find user using email
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new RuntimeException("Invalid email or password"));
 
-        // Verify password against BCrypt hash
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Invalid email or password");
         }
 
-        return user;
+        return new AuthResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail()
+        );
     }
 }
