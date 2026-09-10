@@ -12,13 +12,21 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository) {
+    public AuthService(
+            UserRepository userRepository,
+            JwtService jwtService) {
+
         this.userRepository = userRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
+        this.jwtService = jwtService;
     }
 
-    public AuthResponse signup(String name, String email, String password) {
+    public AuthResponse signup(
+            String name,
+            String email,
+            String password) {
 
         if (userRepository.findByEmail(email).isPresent()) {
             throw new RuntimeException("Email already registered");
@@ -32,27 +40,44 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
+        String token = jwtService.generateToken(
+                savedUser.getId(),
+                savedUser.getEmail()
+        );
+
         return new AuthResponse(
                 savedUser.getId(),
                 savedUser.getName(),
-                savedUser.getEmail()
+                savedUser.getEmail(),
+                token
         );
     }
 
-    public AuthResponse login(String email, String password) {
+    public AuthResponse login(
+            String email,
+            String password) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new RuntimeException("Invalid email or password"));
 
-        if (!passwordEncoder.matches(password, user.getPassword())) {
+        if (!passwordEncoder.matches(
+                password,
+                user.getPassword())) {
+
             throw new RuntimeException("Invalid email or password");
         }
+
+        String token = jwtService.generateToken(
+                user.getId(),
+                user.getEmail()
+        );
 
         return new AuthResponse(
                 user.getId(),
                 user.getName(),
-                user.getEmail()
+                user.getEmail(),
+                token
         );
     }
 }
